@@ -5,6 +5,7 @@ import { createPortal, findDOMNode, render } from 'react-dom';
 import * as sp from 'react-split-pane';
 import { allMessages, checkInputCompletionChange, checkInputCompletionPosition, currentlyRunning, delayMs,
   registerLeanLanguage, server, tabHandler } from './langservice';
+import { widget, Widget } from './widget';
 export const SplitPane: any = sp;
 
 function leanColorize(text: string): string {
@@ -109,6 +110,7 @@ interface InfoViewProps {
 }
 interface InfoViewState {
   goal?: GoalWidgetProps;
+  widget? : widget
   messages: Message[];
   displayMode: DisplayMode;
 }
@@ -153,17 +155,19 @@ class InfoView extends React.Component<InfoViewProps, InfoViewState> {
     });
   }
 
-  refreshGoal(nextProps?: InfoViewProps) {
+  async refreshGoal(nextProps?: InfoViewProps) {
     if (!nextProps) {
       nextProps = this.props;
     }
     if (!nextProps.cursor) {
       return;
     }
-
     const position = nextProps.cursor;
-    server.info(nextProps.file, position.line, position.column).then((res) => {
-      this.setState({goal: res.record && { goal: res.record, position }});
+    const res = await server.info(nextProps.file, position.line, position.column);
+    const widget : {html : any[] | null } | undefined = (res.record as any).widget;
+    this.setState({
+      goal: res.record && { goal: res.record, position },
+      widget : widget && { file_name : this.props.file, ...this.props.cursor, ...widget},
     });
   }
 
@@ -171,6 +175,7 @@ class InfoView extends React.Component<InfoViewProps, InfoViewState> {
     const goal = (this.state.displayMode === DisplayMode.OnlyState) &&
       this.state.goal &&
       (<div key={'goal'}>{GoalWidget(this.state.goal)}</div>);
+    const widg  = this.state.widget && <Widget widget={this.state.widget}/>;
     const filteredMsgs = (this.state.displayMode === DisplayMode.AllMessage) ?
       this.state.messages :
       this.state.messages.filter(({pos_col, pos_line, end_pos_col, end_pos_line}) => {
@@ -197,6 +202,7 @@ class InfoView extends React.Component<InfoViewProps, InfoViewState> {
               this.setState({ displayMode: DisplayMode.AllMessage });
             }}/>
         </div>
+        {widg}
         {goal}
         {msgs}
       </div>

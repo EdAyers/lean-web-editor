@@ -8,7 +8,7 @@
         "allowJs": true,
         "lib": [ "es6", "dom" ],
         "jsx": "react",
-        "sourceMap": false
+        "sourceMap": true
     },
     "include": [ "src/*" ]
 }

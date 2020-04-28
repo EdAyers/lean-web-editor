@@ -43,8 +43,14 @@ module.exports = {
                     'ts-loader'
                 ],
             },
+            {
+                enforce: "pre",
+                test: /\.js$/,
+                loader: "source-map-loader"
+            }
         ],
     },
+    devtool : "source-map",
     devServer: {
         contentBase: distDir,
         publicPath: '/',
