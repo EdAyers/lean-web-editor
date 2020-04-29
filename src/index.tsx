@@ -164,7 +164,7 @@ class InfoView extends React.Component<InfoViewProps, InfoViewState> {
     }
     const position = nextProps.cursor;
     const res = await server.info(nextProps.file, position.line, position.column);
-    const widget : {html : any[] | null } | undefined = (res.record as any).widget;
+    const widget : {html : any[] | null } | undefined = res.record && (res.record as any).widget;
     this.setState({
       goal: res.record && { goal: res.record, position },
       widget : widget && { file_name : this.props.file, ...this.props.cursor, ...widget},
