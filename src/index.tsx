@@ -5,7 +5,7 @@ import { createPortal, findDOMNode, render } from 'react-dom';
 import * as sp from 'react-split-pane';
 import { allMessages, checkInputCompletionChange, checkInputCompletionPosition, currentlyRunning, delayMs,
   registerLeanLanguage, server, tabHandler } from './langservice';
-import { widget, Widget } from './widget';
+import { widget, Widget, WidgetEventMessage } from './widget';
 export const SplitPane: any = sp;
 
 function leanColorize(text: string): string {
@@ -155,6 +155,24 @@ class InfoView extends React.Component<InfoViewProps, InfoViewState> {
     });
   }
 
+  async sendWidgetMessage(msg : WidgetEventMessage) : Promise<void> {
+    const res : any = await server.send(msg);
+    if (res.record && res.record.status == "success" && res.record.widget) {
+      this.setWidget(res.record.widget);
+    }
+  }
+
+  setWidget(widget : {html : any}) {
+    this.setState({
+      widget : {
+        ...widget,
+        file_name : this.props.file,
+        ...this.props.cursor,
+        post : m => this.sendWidgetMessage(m)
+      }
+    });
+  }
+
   async refreshGoal(nextProps?: InfoViewProps) {
     if (!nextProps) {
       nextProps = this.props;
@@ -166,9 +184,14 @@ class InfoView extends React.Component<InfoViewProps, InfoViewState> {
     const res = await server.info(nextProps.file, position.line, position.column);
     const widget : {html : any[] | null } | undefined = res.record && (res.record as any).widget;
     this.setState({
-      goal: res.record && { goal: res.record, position },
-      widget : widget && { file_name : this.props.file, ...this.props.cursor, ...widget},
+      goal: res.record && { goal: res.record, position }
     });
+    if (res.record) {
+      let rec : any = res.record;
+      if (rec.widget) {
+        this.setWidget(rec.widget);
+      }
+    }
   }
 
   render() {

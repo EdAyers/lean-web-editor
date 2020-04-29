@@ -30,11 +30,23 @@ type html =
     | element
     | null
 
-export type widget = {
+export interface widget {
     file_name: string,
     line: number,
     column: number,
+    post : (e : WidgetEventMessage) => void,
     html: html[] | null
+}
+
+export interface WidgetEventMessage {
+    command : "widget_event",
+    kind : "onClick" | "onMouseEnter" | "onMouseLeave" | "onChange";
+    handler : number,
+    route : number[],
+    args : {type : "unit"} | {type : "string", value : string};
+    file_name : string,
+    line : number,
+    column : number
 }
 
 function Html(props: widget) {
@@ -49,25 +61,25 @@ function Html(props: widget) {
         let new_attrs: any = {};
         for (let k of Object.getOwnPropertyNames(attributes)) {
             new_attrs[k] = attributes[k];
-
         }
         for (let k of Object.getOwnPropertyNames(events)) {
-            let message = {
+            let message : WidgetEventMessage = {
                 command : "widget_event",
-                kind : k,
+                kind : k as any,
                 handler: events[k].handler,
                 route: events[k].route,
                 file_name: props.file_name,
                 line: props.line,
-                column: props.column
+                column: props.column,
+                args : {type : "unit"}
             }
             if (["onClick", "onMouseEnter", "onMouseLeave"].includes(k)) {
-                new_attrs[k] = (e) => post({
+                new_attrs[k] = (e) => rest.post({
                     ...message,
                     args: {type : "unit"},
                     });
             } else if (tag === "input" && attributes.type === "text" && k === "onChange") {
-                new_attrs["onChange"] = (e) => post({
+                new_attrs["onChange"] = (e) => rest.post({
                     ...message,
                     args : {type : "string", value : e.target.value},
                 });
@@ -110,8 +122,4 @@ export function Widget(props: { widget?: widget }) : JSX.Element {
         <h1>Widget</h1>
         <div className="widget-container">{Html(widget)}</div>;
     </div>
-}
-
-function post(command) {
-    return server.send(command);
 }
