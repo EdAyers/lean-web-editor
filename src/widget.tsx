@@ -12,7 +12,7 @@ interface eventHandlerId {
 }
 
 interface element {
-    tag: "div" | "span" | "hr" | "button", // ... etc
+    tag: "div" | "span" | "hr" | "button" | "input", // ... etc
     children: html[],
     attributes: { [k: string]: any },
     events: {
@@ -52,17 +52,25 @@ function Html(props: widget) {
 
         }
         for (let k of Object.getOwnPropertyNames(events)) {
+            let message = {
+                command : "widget_event",
+                kind : k,
+                handler: events[k].handler,
+                route: events[k].route,
+                file_name: props.file_name,
+                line: props.line,
+                column: props.column
+            }
             if (["onClick", "onMouseEnter", "onMouseLeave"].includes(k)) {
                 new_attrs[k] = (e) => post({
-                        command: "widget_event",
-                        kind: k,
-                        handler: events[k].handler,
-                        route: events[k].route,
-                        args: {}, // [todo]
-                        file_name: props.file_name,
-                        line: props.line,
-                        column: props.column
+                    ...message,
+                    args: {type : "unit"},
                     });
+            } else if (tag === "input" && attributes.type === "text" && k === "onChange") {
+                new_attrs["onChange"] = (e) => post({
+                    ...message,
+                    args : {type : "string", value : e.target.value},
+                });
             } else {
                 console.error(`unrecognised event kind ${k}`);
             }
