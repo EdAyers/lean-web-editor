@@ -70,7 +70,7 @@ module.exports = {
             { from: 'public/display-goal-light.svg', to: 'display-goal-light.svg', },
             { from: 'public/display-list-light.svg', to: 'display-list-light.svg', },
         ]),
-        new TerserPlugin(),
+        // new TerserPlugin(),
     ],
     node: {
         child_process: 'empty',
