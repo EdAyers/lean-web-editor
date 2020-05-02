@@ -71,7 +71,36 @@ Personal log of what I did to set up an aws instance that watches the git repo.
     </table>
     Then you make it so that the EC2 instance is a member of this security group.
 11. __Set up the domain name__. I went to my domain registrar and made an 'A record' pointing `demo.edayers.com` to the IP address made by the previous step.
-12. [ ]  [__set up apache webserver__](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-lamp-amazon-linux-2.html).
-13. [ ] [Set up "let's encrypt"](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/SSL-on-amazon-linux-2.html)
+12. [__set up apache webserver__](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-lamp-amazon-linux-2.html).
+13. [Set up HTTPS and "let's encrypt"](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/SSL-on-amazon-linux-2.html)
+   Install certbot with some convoluted installer magic.
+    ``
+   sudo wget -r --no-parent -A 'epel-release-*.rpm' http://dl.fedoraproject.org/pub/epel/7/x86_64/Packages/e/
+   sudo rpm -Uvh dl.fedoraproject.org/pub/epel/7/x86_64/Packages/e/epel-release-*.rpm
+   sudo yum-config-manager --enable epel*
+   sudo yum repolist all
+   ```
+   Replace `Listen 80` in `/etc/httpd/conf/httpd.conf` with
+   ```
+   <VirtualHost *:80>
+    DocumentRoot "/var/www/html"
+    ServerName "example.com"
+    ServerAlias "www.example.com"
+   </VirtualHost>
+   ```
+   ```
+   sudo systemctl restart httpd
+   sudo yum install -y certbot python2-certbot-apache
+   sudo certbot
+   ```
+   Then follow the instructions.
+   Finally add a cron job so that it automatically renews. Add this to `/etc/crontab`
+   ```
+   39      1,13    *       *       *       root    certbot renew --no-self-upgrade
+   ```
+   then run
+   ```
+   sudo systemctl restart crond
+   ```
 14. [ ] Symlink the `~/lean-web-editor/dist` folder to `/var/www`.
 15. [ ] make a chron job that checks the github repos and rebuilds, redeploys everything.
