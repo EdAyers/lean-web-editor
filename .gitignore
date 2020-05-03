@@ -5,3 +5,5 @@ lib
 *.tgz
 /dist
 /.vscode
+/secrets
+dist

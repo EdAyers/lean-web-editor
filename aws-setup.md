@@ -43,10 +43,13 @@ Personal log of what I did to set up an aws instance that watches the git repo.
    elan toolchain link local $(pwd)/lean
    ```
 8. build the lean-web-editor
+   [Install node](https://docs.aws.amazon.com/sdk-for-javascript/v2/developer-guide/setting-up-node-on-ec2-instance.html)
    ```
    git clone https://github.com/EdAyers/lean-web-editor.git
+   git checkout widget
    cd lean-web-editor
    elan override set local
+   npm i
    mkdir dist
    cp ~/lean/build/emscripten/shell/lean_js_* ./dist
    ./mk_library.py
@@ -102,5 +105,8 @@ Personal log of what I did to set up an aws instance that watches the git repo.
    ```
    sudo systemctl restart crond
    ```
-14. [ ] Symlink the `~/lean-web-editor/dist` folder to `/var/www`.
-15. [ ] make a chron job that checks the github repos and rebuilds, redeploys everything.
+14. Copy the contents of dist to `/var/www/html`.
+    ```
+    cp ./dist/* /var/www/html
+    ```
+1.  [ ] make a chron job that checks the github repos and rebuilds, redeploys everything.
