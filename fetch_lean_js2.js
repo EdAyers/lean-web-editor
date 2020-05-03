@@ -15,7 +15,7 @@ const sh = async (cmd) => {
 /* Get your access token:
 https://help.github.com/en/github/authenticating-to-github/creating-a-personal-access-token-for-the-command-line */
 const user = "EdAyers"
-const access_token = fs.readFileSync('secrets/github_access_token.txt', 'utf8');
+const access_token = fs.readFileSync('secrets/github_access_token.txt', 'utf8').split("\n")[0];
 const octokit = new Octokit({
     auth : access_token
 });
