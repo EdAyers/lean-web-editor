@@ -771,19 +771,39 @@ class LeanEditor extends React.Component<LeanEditorProps, LeanEditorState> {
 
 const defaultValue =
 `-- Live ${(self as any).WebAssembly ? 'WebAssembly' : 'JavaScript'} version of Lean
- -- with new widget features:
- import widget
+
+import widget
+open widget
 #eval let v := lean.version in let s := lean.special_version_desc in string.join
 ["Lean (version ", v.1.repr, ".", v.2.1.repr, ".", v.2.2.repr, ", ",
 if s ≠ "" then s ++ ", " else s, "commit ", (lean.githash.to_list.take 12).as_string, ")"]
 
-example {P Q : Prop} : P → Q → P ∧ Q :=
+-- try clicking on the different tactic steps to see a rich html goal view
+-- note that you can hover over expressions to see subexpressions
+
+example {P Q : Prop} : P → Q → P ∧ (1 + 2 + 3) = 6 :=
 begin [widget_tactic]
-  tactic.intros,
+  tactic.intros, --<-- click there, try hovering over the expressions in the goal view.
   tactic.split,
-  tactic.assumption, tactic.assumption,
+  tactic.assumption,
 end
 
+-- example of building your own component, see library/widget for more examples
+meta def counter : component tactic_state empty :=
+component.mk
+int -- this is the type of the actions that we expect from the view
+int -- this is the internal state of the component
+(λ _ p, 0 <| p)  -- this is the initial state
+(λ _ x i, (x + i, none)) -- this is the update function
+(λ _ x, [html.button "+" (1), to_string x, html.button "-" (-1)]) -- this is the 'render' method
+
+example {P Q : Prop} : P → Q → P ∧ Q :=
+begin [widget_tactic]
+  put (counter),
+  tactic.intros, --<--  click on this to see a counter
+  tactic.split, -- each step gets it's own local UI state.
+  tactic.assumption,
+end
 `;
 
 interface HashParams {
