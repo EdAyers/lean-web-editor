@@ -95,7 +95,8 @@ async function run() {
     ];
     for (let item of items) {
         const out_file = path.join(out_dir, item);
-        await sh(`unzip -u ${shell_file} ${item} -d ${out_dir}`);
+        // -o = overwrite files without giving a prompt.
+        await sh(`unzip -o ${shell_file} ${item} -d ${out_dir}`);
     }
 
     console.log("Making library");

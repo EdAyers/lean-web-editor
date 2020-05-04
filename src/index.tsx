@@ -771,12 +771,20 @@ class LeanEditor extends React.Component<LeanEditorProps, LeanEditorState> {
 
 const defaultValue =
 `-- Live ${(self as any).WebAssembly ? 'WebAssembly' : 'JavaScript'} version of Lean
+ -- with new widget features:
+ import widget
 #eval let v := lean.version in let s := lean.special_version_desc in string.join
 ["Lean (version ", v.1.repr, ".", v.2.1.repr, ".", v.2.2.repr, ", ",
 if s ≠ "" then s ++ ", " else s, "commit ", (lean.githash.to_list.take 12).as_string, ")"]
 
-example (m n : ℕ) : m + n = n + m :=
-by simp [add_comm]`;
+example {P Q : Prop} : P → Q → P ∧ Q :=
+begin [widget_tactic]
+  tactic.intros,
+  tactic.split,
+  tactic.assumption, tactic.assumption,
+end
+
+`;
 
 interface HashParams {
   url: string;

@@ -34,19 +34,19 @@ export interface widget {
     file_name: string,
     line: number,
     column: number,
-    post : (e : WidgetEventMessage) => void,
+    post: (e: WidgetEventMessage) => void,
     html: html[] | null
 }
 
 export interface WidgetEventMessage {
-    command : "widget_event",
-    kind : "onClick" | "onMouseEnter" | "onMouseLeave" | "onChange";
-    handler : number,
-    route : number[],
-    args : {type : "unit"} | {type : "string", value : string};
-    file_name : string,
-    line : number,
-    column : number
+    command: "widget_event",
+    kind: "onClick" | "onMouseEnter" | "onMouseLeave" | "onChange";
+    handler: number,
+    route: number[],
+    args: { type: "unit" } | { type: "string", value: string };
+    file_name: string,
+    line: number,
+    column: number
 }
 
 function Html(props: widget) {
@@ -63,32 +63,32 @@ function Html(props: widget) {
             new_attrs[k] = attributes[k];
         }
         for (let k of Object.getOwnPropertyNames(events)) {
-            let message : WidgetEventMessage = {
-                command : "widget_event",
-                kind : k as any,
+            let message: WidgetEventMessage = {
+                command: "widget_event",
+                kind: k as any,
                 handler: events[k].handler,
                 route: events[k].route,
                 file_name: props.file_name,
                 line: props.line,
                 column: props.column,
-                args : {type : "unit"}
+                args: { type: "unit" }
             }
             if (["onClick", "onMouseEnter", "onMouseLeave"].includes(k)) {
                 new_attrs[k] = (e) => rest.post({
                     ...message,
-                    args: {type : "unit"},
-                    });
+                    args: { type: "unit" },
+                });
             } else if (tag === "input" && attributes.type === "text" && k === "onChange") {
                 new_attrs["onChange"] = (e) => rest.post({
                     ...message,
-                    args : {type : "string", value : e.target.value},
+                    args: { type: "string", value: e.target.value },
                 });
             } else {
                 console.error(`unrecognised event kind ${k}`);
             }
         }
         if (tooltip) {
-            return <Popper popperContent={Html({html:[tooltip], ...rest})} refEltTag={tag} refEltAttrs={new_attrs} key={new_attrs.key}>{Html({html:children, ...rest})}</Popper>
+            return <Popper popperContent={Html({ html: [tooltip], ...rest })} refEltTag={tag} refEltAttrs={new_attrs} key={new_attrs.key}>{Html({ html: children, ...rest })}</Popper>
         } else {
             return React.createElement(tag, new_attrs, Html({ html: children, ...rest }));
         }
@@ -101,21 +101,24 @@ const Popper = (props) => {
     const [popperElement, setPopperElement] = React.useState(null);
     const [arrowElement, setArrowElement] = React.useState(null);
     const { styles, attributes } = ReactPopper.usePopper(referenceElement, popperElement, {
-        modifiers: [{ name: 'arrow', options: { element: arrowElement } }],
+        modifiers: [
+            { name: 'arrow', options: { element: arrowElement } },
+            { name: 'offset', options: { offset: [0, 8] } },
+        ]
     });
-    const refElt = React.createElement(refEltTag, {ref : setReferenceElement, ...refEltAttrs}, children);
+    const refElt = React.createElement(refEltTag, { ref: setReferenceElement, ...refEltAttrs }, children);
     return (
         <>
             {refElt}
-            <div ref={setPopperElement} style={styles.popper} {...attributes.popper}>
+            <div ref={setPopperElement} style={styles.popper} className="tooltip" {...attributes.popper}>
                 {popperContent}
-                <div ref={setArrowElement} style={styles.arrow} />
+                <div ref={setArrowElement} style={styles.arrow} className="arrow" />
             </div>
         </>
     );
 }
 
-export function Widget(props: { widget?: widget }) : JSX.Element {
+export function Widget(props: { widget?: widget }): JSX.Element {
     let { widget, ...rest } = props;
     if (!widget) { return; }
     return <div id="widget">
