@@ -755,10 +755,10 @@ class LeanEditor extends React.Component<LeanEditorProps, LeanEditorState> {
   /** Called when we should insert some text above the cursor position. */
   onInsert(str) {
     const sel = this.editor.getSelection();
-    const line = sel.startLineNumber;
+    const line = sel.startLineNumber - 1;
     const prev_line = this.model.getLineContent(line);
     const col = this.model.getLineMaxColumn(line)
-    const spaces = this.model.getLineFirstNonWhitespaceColumn(line)
+    const spaces = this.model.getLineFirstNonWhitespaceColumn(line) - 1;
     const margin_str = [...Array(spaces).keys()].map(x => " ").join("");
     const op = {
       identifier : {major : 1, minor : 1},
@@ -793,7 +793,7 @@ class LeanEditor extends React.Component<LeanEditorProps, LeanEditorState> {
         onDragFinished={this.dragFinished}>
           <div ref='monaco' className='monacoContainer'/>
           <div className='infoContainer' style={infoStyle}>
-            <InfoView file={this.props.file} cursor={this.state.cursor}/>
+            <InfoView file={this.props.file} cursor={this.state.cursor} onInsert={x => this.onInsert(x)}/>
           </div>
         </SplitPane>
       </div>
