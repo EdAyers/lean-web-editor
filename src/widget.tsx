@@ -110,8 +110,10 @@ function Html(props: widget) {
         }
         if (tooltip) {
             return <Popper popperContent={Html({ html: [tooltip], ...rest })} refEltTag={tag} refEltAttrs={new_attrs} key={new_attrs.key}>{Html({ html: children, ...rest })}</Popper>
-        } else {
+        } else if (children.length > 0) {
             return React.createElement(tag, new_attrs, Html({ html: children, ...rest }));
+        } else {
+            return React.createElement(tag, new_attrs);
         }
     });
 }
