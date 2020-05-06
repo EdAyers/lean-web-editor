@@ -5,7 +5,7 @@ import { createPortal, findDOMNode, render } from 'react-dom';
 import * as sp from 'react-split-pane';
 import { allMessages, checkInputCompletionChange, checkInputCompletionPosition, currentlyRunning, delayMs,
   registerLeanLanguage, server, tabHandler } from './langservice';
-import { widget, Widget, WidgetEventMessage } from './widget';
+import { widget, Widget, WidgetEventMessage, WidgetEventResponse } from './widget';
 export const SplitPane: any = sp;
 
 function leanColorize(text: string): string {
@@ -107,6 +107,7 @@ enum DisplayMode {
 interface InfoViewProps {
   file: string;
   cursor?: Position;
+  onInsert : (command : string) => void;
 }
 interface InfoViewState {
   goal?: GoalWidgetProps;
@@ -157,8 +158,21 @@ class InfoView extends React.Component<InfoViewProps, InfoViewState> {
 
   async sendWidgetMessage(msg : WidgetEventMessage) : Promise<void> {
     const res : any = await server.send(msg);
-    if (res.record && res.record.status == "success" && res.record.widget) {
-      this.setWidget(res.record.widget);
+    const record : WidgetEventResponse = res.record;
+    if (!record) {return;}
+    if (record.status === "success") {
+      this.setWidget(record.widget);
+    } else if (record.status === "edit") {
+      const {widget, action} = record;
+      this.setWidget(widget);
+      this.props.onInsert(action);
+    } else if (record.status === "error") {
+      console.error(`server errored on widget_event: ${record.message}`);
+    } else if (record.status === "invalid_handler") {
+      console.log(`Widget event had invalid handler, not updating. `)
+    } else {
+      // @ts-ignore
+      throw new Error(`Status ${record.status} is not implemented.`);
     }
   }
 
@@ -736,6 +750,24 @@ class LeanEditor extends React.Component<LeanEditorProps, LeanEditorState> {
 
   onChecked() {
     this.setState({ checked: !this.state.checked });
+  }
+
+  /** Called when we should insert some text above the cursor position. */
+  onInsert(str) {
+    const sel = this.editor.getSelection();
+    const line = sel.startLineNumber;
+    const prev_line = this.model.getLineContent(line);
+    const col = this.model.getLineMaxColumn(line)
+    const spaces = this.model.getLineFirstNonWhitespaceColumn(line)
+    const margin_str = [...Array(spaces).keys()].map(x => " ").join("");
+    const op = {
+      identifier : {major : 1, minor : 1},
+      range : new monaco.Range(line, col, line, col),
+      forceMoveMarkers : true,
+      text : `\n${margin_str}${str}, `
+    }
+    this.editor.executeEdits("widget_event", [op]);
+    this.editor.setSelection(new monaco.Range(line, spaces, line, spaces));
   }
 
   render() {

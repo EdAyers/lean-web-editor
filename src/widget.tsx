@@ -49,6 +49,27 @@ export interface WidgetEventMessage {
     column: number
 }
 
+// [FIXME] not DRY between vscode-lean.
+interface WidgetEventResponseSuccess {
+    status : "success",
+    widget : any,
+}
+interface WidgetEventResponseEdit {
+    status : "edit",
+    widget : any,
+    /** Some text to insert after the widget's comma. */
+    action : string
+}
+interface WidgetEventResponseInvalid {
+    status : "invalid_handler"
+}
+interface WidgetEventResponseError {
+    status : "error",
+    message : string
+}
+export type WidgetEventResponse = WidgetEventResponseSuccess | WidgetEventResponseInvalid | WidgetEventResponseEdit | WidgetEventResponseError
+
+
 function Html(props: widget) {
     let { html, ...rest } = props;
     return html.map(w => {
