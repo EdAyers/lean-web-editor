@@ -767,7 +767,7 @@ class LeanEditor extends React.Component<LeanEditorProps, LeanEditorState> {
       text : `\n${margin_str}${str}, `
     }
     this.editor.executeEdits("widget_event", [op]);
-    this.editor.setSelection(new monaco.Range(line + 1, spaces, line + 1, spaces));
+    this.editor.setSelection(new monaco.Range(line + 2, spaces, line + 2, spaces));
   }
 
   render() {
