@@ -145,6 +145,6 @@ export function Widget(props: { widget?: widget }): JSX.Element {
     let { widget, ...rest } = props;
     if (!widget) { return; }
     return <div id="widget">
-        <div className="widget-container">{Html(widget)}</div>;
+        <div className="widget-container">{Html(widget)}</div>
     </div>
 }
