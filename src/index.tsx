@@ -814,7 +814,7 @@ if s ≠ "" then s ++ ", " else s, "commit ", (lean.githash.to_list.take 12).as_
 -- note that you can hover over expressions to see subexpressions
 
 example {P Q : Prop} : P → Q → P ∧ (1 + 2 + 3) = 6 :=
-begin [widget_tactic]
+begin
   tactic.intros, --<-- click there, try hovering over the expressions in the goal view.
   tactic.split,
   tactic.assumption,
@@ -834,7 +834,7 @@ int -- this is the internal state of the component
 (λ _ x, [html.button "+" (some 1), to_string x, html.button "-" (some (-1)), html.button "print" (none)]) -- this is the 'render' method
 
 example {P Q : Prop} : P → Q → P ∧ Q :=
-begin [widget_tactic]
+begin [widget_tactic] -- widget_tactic let's you replace the built-in tactic state widget with your own.
   put (counter),
   tactic.intros, --<--  click on this to see a counter
   tactic.split, -- each step gets it's own local UI state.
