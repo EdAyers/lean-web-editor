@@ -789,13 +789,17 @@ begin [widget_tactic]
 end
 
 -- example of building your own component, see library/widget for more examples
-meta def counter : component tactic_state empty :=
+meta def counter : component tactic_state string :=
 component.mk
-int -- this is the type of the actions that we expect from the view
+(option int) -- this is the type of the actions that we expect from the view
 int -- this is the internal state of the component
 (λ _ p, 0 <| p)  -- this is the initial state
-(λ _ x i, (x + i, none)) -- this is the update function
-(λ _ x, [html.button "+" (1), to_string x, html.button "-" (-1)]) -- this is the 'render' method
+(λ _ x i,
+  match i with
+  | (some i) := (x + i, none)
+  | none := (x, some $ "tactic.trace " ++ to_string x)
+  end)
+(λ _ x, [html.button "+" (some 1), to_string x, html.button "-" (some (-1)), html.button "print" (none)]) -- this is the 'render' method
 
 example {P Q : Prop} : P → Q → P ∧ Q :=
 begin [widget_tactic]
