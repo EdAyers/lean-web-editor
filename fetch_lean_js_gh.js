@@ -65,7 +65,7 @@ async function getFromRelease(options) {
     ];
     for (let item of items) {
         const input_ext = path.join("build", "shell", item)
-        const out_file = path.join(out_dir, "shell", item);
+        const out_file = path.join(out_dir, item);
         // -o = overwrite files without giving a prompt.
         await sh(`unzip -p -o ${shell_file} ${input_ext} > ${out_file}`);
     }
