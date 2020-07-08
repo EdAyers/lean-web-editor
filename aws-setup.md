@@ -18,15 +18,15 @@ Personal log of what I did to set up an aws instance that watches the git repo.
    cd lean
    git checkout widget
    ```
-5. Build the lean emscripten. An alternative is to pull the archive from the github action. But I thought it would be good to have it all done locally.
+5. Build/get the lean emscripten. An alternative is to pull the archive from the github action. But I thought it would be good to have it all done locally.
    ```
-
    mkdir -p build/emscripten
    cd build/release
    docker run -dit --name emscripten -v $(pwd):/src edayers/emscripten bash
    docker exec -it -w /src/build/emscripten emscripten emconfigure cmake /src/src -DCMAKE_BUILD_TYPE=Emscripten -DLEAN_EMSCRIPTEN_BUILD=Main
    docker exec -it -w /src/build/emscripten -e NODE_OPTIONS="--max-old-space-size=4096" emscripten emmake make
    ```
+   __Alternatively:__ use the `fetch_lean_js_gh.js` script which will download the latest release so you don't have to do this step.
 6. Build lean
    ```
    sudo yum groupinstall "Development Tools"
@@ -44,25 +44,30 @@ Personal log of what I did to set up an aws instance that watches the git repo.
    ```
 8. build the lean-web-editor
    [Install node](https://docs.aws.amazon.com/sdk-for-javascript/v2/developer-guide/setting-up-node-on-ec2-instance.html)
-   ```
+   ```sh
    git clone https://github.com/EdAyers/lean-web-editor.git
    git checkout widget
    cd lean-web-editor
    elan override set local
    npm i
    mkdir dist
-   cp ~/lean/build/emscripten/shell/lean_js_* ./dist
+   # EITHER build it yourself
+      cp ~/lean/build/emscripten/shell/lean_js_* ./dist
+   # OR download the release
+      node ./fetch_lean_js_gh.js
+   # remember to make sure that the version is the same for both
+   # `combined_lib/leanpkg.toml` and the above files.
    ./mk_library.py
    npm run build
    ```
-9. __Give the instance a public IP address.__
+9.  __Give the instance a public IP address.__
    Go to the EC2 console.
    Go to 'elastic IPs'.
    Click allocate IP address.
    Use Amazon's pool of IPv4 addresses, hit the allocate button.
    Click on the newly made IP address and click 'associate', then associate it with the EC2 instance you made.
    Now your instance has a public IP address but you still need to open up the ports.
-10. __Open the ports__. Go to 'security groups' tab,create a security group. Then add a load of 'inbound rules':
+11. __Open the ports__. Go to 'security groups' tab,create a security group. Then add a load of 'inbound rules':
     <table>
         <tr><th>Type</th>  <th>Protocol</th> <th>Port range</th> <th>Source</th></tr>
         <tr><td>HTTP</td>  <td>TCP</td> <td>80</td>  <td>0.0.0.0/0</td></tr>
@@ -73,9 +78,9 @@ Personal log of what I did to set up an aws instance that watches the git repo.
         <tr><td>HTTPS</td> <td>TCP</td> <td>443</td> <td>::/0</td></tr>
     </table>
     Then you make it so that the EC2 instance is a member of this security group.
-11. __Set up the domain name__. I went to my domain registrar and made an 'A record' pointing `demo.edayers.com` to the IP address made by the previous step.
-12. [__set up apache webserver__](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-lamp-amazon-linux-2.html).
-13. [Set up HTTPS and "let's encrypt"](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/SSL-on-amazon-linux-2.html)
+12. __Set up the domain name__. I went to my domain registrar and made an 'A record' pointing `demo.edayers.com` to the IP address made by the previous step.
+13. [__set up apache webserver__](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-lamp-amazon-linux-2.html).
+14. [Set up HTTPS and "let's encrypt"](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/SSL-on-amazon-linux-2.html)
    Install certbot with some convoluted installer magic.
     ``
    sudo wget -r --no-parent -A 'epel-release-*.rpm' http://dl.fedoraproject.org/pub/epel/7/x86_64/Packages/e/
